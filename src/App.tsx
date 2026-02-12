@@ -1,10 +1,21 @@
 import React, { useState } from "react";
+import { BookingForm } from "./components/BookingForm";
 import { BookingManagementDashboard } from "./components/BookingManagementDashboard";
 import { RoomList } from "./components/RoomList";
 import "./App.css";
 
 function App() {
-  const [view, setView] = useState<"rooms" | "dashboard">("rooms");
+  const [view, setView] = useState<"rooms" | "bookingForm" | "dashboard">(
+    "rooms",
+  );
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+
+  function handleOpenBookingForm(roomId?: number) {
+    if (roomId) {
+      setSelectedRoomId(roomId);
+    }
+    setView("bookingForm");
+  }
 
   return (
     <div className="App">
@@ -22,6 +33,15 @@ function App() {
             <button
               type="button"
               className={`App-nav-button ${
+                view === "bookingForm" ? "active" : ""
+              }`}
+              onClick={() => handleOpenBookingForm()}
+            >
+              Booking Form
+            </button>
+            <button
+              type="button"
+              className={`App-nav-button ${
                 view === "dashboard" ? "active" : ""
               }`}
               onClick={() => setView("dashboard")}
@@ -32,7 +52,15 @@ function App() {
         </div>
       </header>
       <main className="App-main">
-        {view === "rooms" ? <RoomList /> : <BookingManagementDashboard />}
+        {view === "rooms" && <RoomList onBookRoom={handleOpenBookingForm} />}
+        {view === "bookingForm" && (
+          <BookingForm
+            preselectedRoomId={selectedRoomId}
+            onCancel={() => setView("rooms")}
+            onSuccess={() => setView("dashboard")}
+          />
+        )}
+        {view === "dashboard" && <BookingManagementDashboard />}
       </main>
     </div>
   );
