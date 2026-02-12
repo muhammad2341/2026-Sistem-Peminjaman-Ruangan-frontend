@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { BookingForm } from "./components/BookingForm";
+import { BookingHistory } from "./components/BookingHistory";
 import { BookingManagementDashboard } from "./components/BookingManagementDashboard";
 import { RoomList } from "./components/RoomList";
 import "./App.css";
 
 function App() {
-  const [view, setView] = useState<"rooms" | "bookingForm" | "dashboard">(
-    "rooms",
-  );
+  const [view, setView] = useState<
+    "rooms" | "bookingForm" | "history" | "dashboard"
+  >("rooms");
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
   function handleOpenBookingForm(roomId?: number) {
@@ -41,6 +42,13 @@ function App() {
             </button>
             <button
               type="button"
+              className={`App-nav-button ${view === "history" ? "active" : ""}`}
+              onClick={() => setView("history")}
+            >
+              Booking History
+            </button>
+            <button
+              type="button"
               className={`App-nav-button ${
                 view === "dashboard" ? "active" : ""
               }`}
@@ -60,6 +68,7 @@ function App() {
             onSuccess={() => setView("dashboard")}
           />
         )}
+        {view === "history" && <BookingHistory />}
         {view === "dashboard" && <BookingManagementDashboard />}
       </main>
     </div>
