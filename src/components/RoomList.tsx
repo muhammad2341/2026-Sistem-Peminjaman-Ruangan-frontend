@@ -2,7 +2,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import { apiService, Room } from "../services/api";
 import "../styles/RoomList.css";
 
-export const RoomList: React.FC = () => {
+type RoomListProps = {
+  onBookRoom?: (roomId: number) => void;
+};
+
+export const RoomList: React.FC<RoomListProps> = ({ onBookRoom }) => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +101,12 @@ export const RoomList: React.FC = () => {
                 )}
               </div>
               <div className="room-card-footer">
-                <button className="btn-book" disabled={!room.isAvailable}>
+                <button
+                  className="btn-book"
+                  disabled={!room.isAvailable}
+                  onClick={() => onBookRoom?.(room.id)}
+                  type="button"
+                >
                   {room.isAvailable ? "Book Now" : "Not Available"}
                 </button>
               </div>
