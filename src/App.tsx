@@ -1,78 +1,26 @@
-import React, { useState } from "react";
-import { BookingForm } from "./components/BookingForm";
-import { BookingHistory } from "./components/BookingHistory";
-import { BookingManagementDashboard } from "./components/BookingManagementDashboard";
-import { RoomList } from "./components/RoomList";
+import React from "react";
+import { useAuth } from "./auth/AuthContext";
+import { AdminPage } from "./components/AdminPage";
+import { BorrowerPage } from "./components/BorrowerPage";
+import { LoginPage } from "./components/LoginPage";
 import "./App.css";
 
 function App() {
-  const [view, setView] = useState<
-    "rooms" | "bookingForm" | "history" | "dashboard"
-  >("rooms");
-  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+  const { user, isAuthenticated, logout } = useAuth();
 
-  function handleOpenBookingForm(roomId?: number) {
-    if (roomId) {
-      setSelectedRoomId(roomId);
-    }
-    setView("bookingForm");
+  if (!isAuthenticated || !user) {
+    return <LoginPage />;
   }
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <div className="App-header-inner">
-          <h1 className="App-title">Room Booking System</h1>
-          <nav className="App-nav" aria-label="Primary">
-            <button
-              type="button"
-              className={`App-nav-button ${view === "rooms" ? "active" : ""}`}
-              onClick={() => setView("rooms")}
-            >
-              Rooms
-            </button>
-            <button
-              type="button"
-              className={`App-nav-button ${
-                view === "bookingForm" ? "active" : ""
-              }`}
-              onClick={() => handleOpenBookingForm()}
-            >
-              Booking Form
-            </button>
-            <button
-              type="button"
-              className={`App-nav-button ${view === "history" ? "active" : ""}`}
-              onClick={() => setView("history")}
-            >
-              Booking History
-            </button>
-            <button
-              type="button"
-              className={`App-nav-button ${
-                view === "dashboard" ? "active" : ""
-              }`}
-              onClick={() => setView("dashboard")}
-            >
-              Booking Dashboard
-            </button>
-          </nav>
-        </div>
-      </header>
-      <main className="App-main">
-        {view === "rooms" && <RoomList onBookRoom={handleOpenBookingForm} />}
-        {view === "bookingForm" && (
-          <BookingForm
-            preselectedRoomId={selectedRoomId}
-            onCancel={() => setView("rooms")}
-            onSuccess={() => setView("dashboard")}
-          />
-        )}
-        {view === "history" && <BookingHistory />}
-        {view === "dashboard" && <BookingManagementDashboard />}
-      </main>
-    </div>
-  );
+  if (user.role === "Admin") {
+    return <AdminPage displayName={user.displayName} onLogout={logout} />;
+  }
+
+  if (user.role === "Peminjam") {
+    return <BorrowerPage displayName={user.displayName} onLogout={logout} />;
+  }
+
+  return <LoginPage />;
 }
 
 export default App;

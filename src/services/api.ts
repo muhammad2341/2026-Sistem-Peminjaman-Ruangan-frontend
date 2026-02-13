@@ -1,6 +1,21 @@
 const API_BASE_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5271/api";
 
+export type UserRole = "Admin" | "Peminjam";
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  username: string;
+  displayName: string;
+  role: UserRole;
+  expiresInSeconds: number;
+}
+
 export interface Room {
   id: number;
   roomNumber: string;
@@ -35,13 +50,28 @@ export interface PaginatedResponse<T> {
 }
 
 class ApiService {
+  private getStoredToken(): string | null {
+    const raw = localStorage.getItem("room_booking_auth");
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw) as { token?: string };
+      return parsed.token ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     options?: RequestInit,
   ): Promise<T> {
+    const token = this.getStoredToken();
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options?.headers,
       },
       ...options,
@@ -55,6 +85,16 @@ class ApiService {
     }
 
     return response.json();
+  }
+
+  async login(payload: LoginRequest): Promise<LoginResponse> {
+    return this.request<LoginResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   // Room endpoints
