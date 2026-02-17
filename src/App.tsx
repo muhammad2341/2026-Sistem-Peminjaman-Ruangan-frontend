@@ -1,26 +1,26 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { useAuth } from "./auth/AuthContext";
+import { AdminPage } from "./components/AdminPage";
+import { BorrowerPage } from "./components/BorrowerPage";
+import { LoginPage } from "./components/LoginPage";
+import "./App.css";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  const { user, isAuthenticated, logout } = useAuth();
+
+  if (!isAuthenticated || !user) {
+    return <LoginPage />;
+  }
+
+  if (user.role === "Admin") {
+    return <AdminPage displayName={user.displayName} onLogout={logout} />;
+  }
+
+  if (user.role === "Peminjam") {
+    return <BorrowerPage displayName={user.displayName} onLogout={logout} />;
+  }
+
+  return <LoginPage />;
 }
 
 export default App;
