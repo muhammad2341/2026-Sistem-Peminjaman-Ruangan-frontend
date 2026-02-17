@@ -78,13 +78,37 @@ class ApiService {
     });
 
     if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ message: "Request failed" }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+      const contentType = response.headers.get("content-type") ?? "";
+      const rawError = await response.text();
+
+      if (contentType.includes("application/json") && rawError.trim()) {
+        try {
+          const parsed = JSON.parse(rawError) as { message?: string };
+          throw new Error(parsed.message || `HTTP ${response.status}`);
+        } catch {
+          throw new Error(rawError || `HTTP ${response.status}`);
+        }
+      }
+
+      throw new Error(rawError || `HTTP ${response.status}`);
     }
 
-    return response.json();
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    const rawBody = await response.text();
+
+    if (!rawBody.trim()) {
+      return undefined as T;
+    }
+
+    if (contentType.includes("application/json")) {
+      return JSON.parse(rawBody) as T;
+    }
+
+    return rawBody as T;
   }
 
   async login(payload: LoginRequest): Promise<LoginResponse> {
